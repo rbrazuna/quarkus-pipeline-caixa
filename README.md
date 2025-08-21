@@ -22,3 +22,30 @@ getting-started/
 ├─ service-prd.yaml
 └─ pom.xml
 ```
+
+## Uso dos scripts
+
+### Build + carregar no cluster (usa versão do `pom.xml`)
+```
+powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1
+```
+
+## DEPLOY DES (Usa a versão do pom.xml)
+```
+powershell -ExecutionPolicy Bypass -File .\scripts\deploy-des.ps1
+```
+# URL: use o comando abaixo numa outra janela para abrir o túnel e testar /hello
+```
+minikube service getting-started-svc-des -n des --url
+```
+
+##DEPLOY PRD (Usa a versão do pom.xml)
+```
+powershell -ExecutionPolicy Bypass -File .\scripts\deploy-prd.ps1
+```
+# Ex.: se pom = 1.0.2-SNAPSHOT → promove para 1.0.2
+# Para checar a URL:
+```
+minikube service getting-started-svc-prd -n prd --url
+```
