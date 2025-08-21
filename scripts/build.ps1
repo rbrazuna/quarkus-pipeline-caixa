@@ -1,13 +1,27 @@
-# Compila, gera a imagem e carrega no Minikube
 param([string]$Tag)
 $ErrorActionPreference = "Stop"
 
-if (-not $Tag) {
-  # Lê a versão do pom.xml (ex.: 1.0.2-SNAPSHOT)
-  $Tag = (& mvn -q help:evaluate -Dexpression=project.version -DforceStdout)
+$projRoot = Split-Path $PSScriptRoot -Parent
+Set-Location $projRoot
+
+function Get-ProjectVersion {
+  try {
+    [xml]$pom = Get-Content -Raw -Encoding UTF8 ".\pom.xml"
+    $v = $pom.project.version
+    if ($v) { return $v.Trim() }
+  } catch { }
+  $v2 = & mvn -q help:evaluate -Dexpression=project.version -DforceStdout 2>$null
+  if ($v2) {
+    $v2 = $v2 | Where-Object { $_ -match '^\d+\.\d+\.\d+(-SNAPSHOT)?$' } | Select-Object -First 1
+    if ($v2) { return $v2.Trim() }
+  }
+  throw "Não foi possível obter a versão do projeto."
 }
 
-mvn clean package -DskipTests        # limpa e empacota o JAR
-docker build -t "rb/getting-started:$Tag" -f Dockerfile .  # constrói a imagem
-minikube image load "rb/getting-started:$Tag"              # carrega no cluster
+if (-not $Tag -or $Tag.Trim() -eq "") { $Tag = Get-ProjectVersion }
+
+Write-Host "Usando tag: $Tag"
+mvn clean package -DskipTests
+docker build -t "rb/getting-started:$Tag" -f Dockerfile .
+minikube image load "rb/getting-started:$Tag"
 Write-Host "Imagem pronta: rb/getting-started:$Tag"
