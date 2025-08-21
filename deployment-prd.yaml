@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: getting-started-prd
+  namespace: prd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: getting-started
+  template:
+    metadata:
+      labels:
+        app: getting-started
+    spec:
+      containers:
+        - name: getting-started
+          image: rb/getting-started:1.0.0-SNAPSHOT
+          ports:
+            - containerPort: 8080
