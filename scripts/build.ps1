@@ -21,7 +21,7 @@ function Get-ProjectVersion {
 if (-not $Tag -or $Tag.Trim() -eq "") { $Tag = Get-ProjectVersion }
 
 Write-Host "Usando tag: $Tag"
-mvn clean package -DskipTests
+mvn clean package 
 docker build -t "rb/getting-started:$Tag" -f Dockerfile .
 minikube image load "rb/getting-started:$Tag"
 Write-Host "Imagem pronta: rb/getting-started:$Tag"
