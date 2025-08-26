@@ -10,7 +10,7 @@ Aplicação **Quarkus Getting Started** empacotada em Docker e implantada em **K
 - **Minikube** com `--driver=docker`
 - **kubectl**
 - **Java 17 (Temurin)** e **Maven 3.9+**
-- (Opcional) **WSL (Ubuntu)** para comandos Maven/plugins
+- **WSL2 (Ubuntu)** para comandos Maven/plugins
 
 ## Estrutura
 ```
