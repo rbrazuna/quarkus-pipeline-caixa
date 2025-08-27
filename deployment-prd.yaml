@@ -5,33 +5,37 @@ metadata:
   namespace: prd
   labels:
     app: getting-started
+    system: HACKATHON
+    module: getting-started
+    env: prd
+    group: grp01
+    instance: ci-hackathon-getting-started-prd-grp01-001
+  annotations:
+    pipeline.name: "HACKATHON-getting-started-release-prd"
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: getting-started
+      env: prd
   template:
     metadata:
       labels:
         app: getting-started
+        system: HACKATHON
+        module: getting-started
+        env: prd
+        group: grp01
+        instance: ci-hackathon-getting-started-prd-grp01-001
     spec:
       containers:
         - name: getting-started
-          image: rb/getting-started:1.0.1
+          # tag placeholder para o primeiro apply; o deploy-prd.ps1 faz 'kubectl set image'
+          image: hackathon/getting-started:0.0.0
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 1001
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-          resources:
-            requests:
-              cpu: "100m"
-              memory: "128Mi"
-            limits:
-              cpu: "500m"
-              memory: "256Mi"
+              name: http
           readinessProbe:
             httpGet:
               path: /hello
@@ -44,9 +48,10 @@ spec:
               port: 8080
             initialDelaySeconds: 10
             periodSeconds: 20
-          volumeMounts:
-            - name: tmp
-              mountPath: /tmp
-      volumes:
-        - name: tmp
-          emptyDir: {}
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

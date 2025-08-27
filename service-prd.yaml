@@ -3,11 +3,23 @@ kind: Service
 metadata:
   name: getting-started-svc-prd
   namespace: prd
+  labels:
+    app: getting-started
+    system: HACKATHON
+    module: getting-started
+    env: prd
+    group: grp01
+    instance: ci-hackathon-getting-started-prd-grp01-401
+  annotations:
+    pipeline.name: "HACKATHON-getting-started-release-prd"
 spec:
+  type: NodePort
   selector:
     app: getting-started
+    env: prd
   ports:
-    - protocol: TCP
+    - name: http
+      protocol: TCP
       port: 8080
       targetPort: 8080
-  type: NodePort
+      nodePort: 30090

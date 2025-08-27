@@ -1,27 +1,84 @@
-param([string]$Tag)
+param(
+  [string]$Tag
+)
 $ErrorActionPreference = "Stop"
 
-$projRoot = Split-Path $PSScriptRoot -Parent
-Set-Location $projRoot
+# =========================
+# Padrões de nomenclatura
+# =========================
+$SISTEMA  = "HACKATHON"
+$PROJECT  = "rb"
 
-function Get-ProjectVersion {
-  try {
-    [xml]$pom = Get-Content -Raw -Encoding UTF8 ".\pom.xml"
-    $v = $pom.project.version
-    if ($v) { return $v.Trim() }
-  } catch { }
-  $v2 = & mvn -q help:evaluate -Dexpression=project.version -DforceStdout 2>$null
-  if ($v2) {
-    $v2 = $v2 | Where-Object { $_ -match '^\d+\.\d+\.\d+(-SNAPSHOT)?$' } | Select-Object -First 1
-    if ($v2) { return $v2.Trim() }
+# Lê artifactId e version do pom.xml
+function Get-ProjectInfo {
+  $pomPath = Join-Path -Path (Get-Location) -ChildPath "pom.xml"
+  if (-not (Test-Path $pomPath)) { throw "pom.xml não encontrado em $pomPath" }
+  [xml]$pom = Get-Content -Raw -Path $pomPath
+  return @{
+    artifactId = $pom.project.artifactId
+    version    = $pom.project.version
   }
-  throw "Não foi possível obter a versão do projeto."
 }
 
-if (-not $Tag -or $Tag.Trim() -eq "") { $Tag = Get-ProjectVersion }
+$projInfo = Get-ProjectInfo
+$MODULO   = $projInfo.artifactId
+$version  = $projInfo.version
+$REPO     = "$PROJECT/$MODULO"     # => rb/getting-started
+$PIPELINE = "$SISTEMA-$MODULO-build"
 
+Write-Host "==> $PIPELINE"
+
+function Get-ProjectVersion {
+  if ($projInfo.version) { return $projInfo.version }
+  return "0.0.0-SNAPSHOT"
+}
+
+function Test-Command($cmd) {
+  return [bool](Get-Command $cmd -ErrorAction SilentlyContinue)
+}
+
+# Resolve tag se não vier por parâmetro
+if (-not $Tag -or $Tag.Trim() -eq "") { $Tag = Get-ProjectVersion }
 Write-Host "Usando tag: $Tag"
-mvn clean package 
-docker build -t "rb/getting-started:$Tag" -f Dockerfile .
-minikube image load "rb/getting-started:$Tag"
-Write-Host "Imagem pronta: rb/getting-started:$Tag"
+
+# =========================
+# Build + testes
+# =========================
+mvn clean verify
+
+# =========================
+# Docker build
+# =========================
+$ImageSnapshot = "${REPO}:${Tag}"
+docker build -t $ImageSnapshot -f Dockerfile .
+
+# =========================
+# Criar também tag estável (sem -SNAPSHOT)
+# =========================
+$StableTag = ($Tag -replace "-SNAPSHOT$","")
+if ($StableTag -ne $Tag) {
+  $ImageStable = "${REPO}:${StableTag}"
+  Write-Host ">> Criando tag estável: $ImageStable"
+  docker tag $ImageSnapshot $ImageStable
+}
+
+# =========================
+# Carregar imagens no Minikube
+# =========================
+if (Test-Command "minikube") {
+  try {
+    Write-Host ">> Carregando imagem no Minikube: $ImageSnapshot"
+    minikube image load $ImageSnapshot
+    if ($StableTag -ne $Tag) {
+      Write-Host ">> Carregando imagem no Minikube: $ImageStable"
+      minikube image load $ImageStable
+    }
+  } catch {
+    Write-Warning "Falha ao carregar imagens no Minikube: $_"
+  }
+}
+
+Write-Host "Imagem pronta: $ImageSnapshot"
+if ($StableTag -ne $Tag) {
+  Write-Host "Imagem estável pronta: $ImageStable"
+}
