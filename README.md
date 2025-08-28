@@ -1,51 +1,73 @@
-# Desafio CAIXA DevSecOps - Quarkus Pipeline
+# Quarkus Pipeline Caixa – DevSecOps Hackathon  
 
-## Visão geral
-Aplicação **Quarkus Getting Started** empacotada em Docker e implantada em **Kubernetes local (Minikube)** com dois ambientes:
-- **DES**: roda `X.Y.Z-SNAPSHOT`
-- **PRD**: roda `X.Y.Z` (estável)
+## 📌 Descrição  
+Este repositório faz parte do desafio **DevSecOps – Hackathon**, cujo objetivo é automatizar a implantação de uma aplicação **Quarkus** em um cluster **Kubernetes local**, simulando uma pipeline completa de entrega contínua com boas práticas de **DevOps** e **DevSecOps**.  
 
-## Pré-requisitos (Windows)
-- Windows 10/11 com **Docker Desktop**
-- **Minikube** com `--driver=docker`
-- **kubectl**
-- **Java 17 (Temurin)** e **Maven 3.9+**
-- **WSL2 (Ubuntu)** para comandos Maven/plugins
+A aplicação utilizada como base é o **getting-started** do [quarkus-quickstarts](https://github.com/quarkusio/quarkus-quickstarts/tree/main/getting-started).  
 
-## Estrutura
-```
-getting-started/
-├─ Dockerfile
-├─ deployment-des.yaml
-├─ service-des.yaml
-├─ deployment-prd.yaml
-├─ service-prd.yaml
-└─ pom.xml
-```
+---
 
-## Uso dos scripts
+## 🎯 Objetivos do Projeto  
+- Compilação da aplicação Quarkus em **JAR** executável.  
+- Criação de **imagem Docker** a partir do build.  
+- Deploy automatizado em **Kubernetes** nos ambientes:  
+  - **DES** (Desenvolvimento) – para testes e validações.  
+  - **PRD** (Produção) – simulação de ambiente final.  
+- Implementação de scripts e pipeline local para automação.  
+- Uso de boas práticas de **versionamento**, **segurança** e **infra como código**.  
 
-### Build + carregar no cluster (usa versão do `pom.xml`)
-```
-powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1
-```
+---
 
-## DEPLOY DES (Usa a versão do pom.xml)
+## ⚙️ Estrutura do Projeto  
 ```
-powershell -ExecutionPolicy Bypass -File .\scripts\deploy-des.ps1
-```
-# URL: use o comando abaixo numa outra janela para abrir o túnel e testar /hello
-```
-minikube service getting-started-svc-des -n des --url
+📂 quarkus-pipeline-caixa
+ ┣ 📂 getting-started           # Projeto Quarkus base
+ ┃ ┣ 📂 scripts                 # Scripts de automação em PowerShell
+ ┃ ┃ ┣ build.ps1                # Build e criação da imagem Docker
+ ┃ ┃ ┣ deploy-des.ps1           # Deploy no ambiente DES
+ ┃ ┃ ┣ deploy-prd.ps1           # Deploy no ambiente PRD
+ ┃ ┃ ┗ ...  
+ ┣ 📂 entrega                   # Arquivo ZIP para submissão
+ ┣ 📄 DAS.md                    # Documento de Arquitetura do Sistema
+ ┣ 📄 README.md                 # Este documento
+ ┗ 📄 pom.xml                   # Configuração Maven do projeto
 ```
 
-##DEPLOY PRD (Usa a versão do pom.xml)
+---
+
+## 🚀 Como Executar  
+
+### 1. Pré-requisitos  
+- [Docker](https://www.docker.com/)  
+- [Kubernetes](https://kubernetes.io/) (minikube ou kind)  
+- [PowerShell](https://learn.microsoft.com/powershell/)  
+- [Maven](https://maven.apache.org/)  
+
+### 2. Build da aplicação  
+```powershell
+cd getting-started
+./scripts/build.ps1
 ```
-powershell -ExecutionPolicy Bypass -File .\scripts\deploy-prd.ps1
+
+### 3. Deploy em Desenvolvimento (DES)  
+```powershell
+./scripts/deploy-des.ps1
 ```
-# Ex.: se pom = 1.0.2-SNAPSHOT → promove para 1.0.2
-# Para checar a URL:
+
+### 4. Deploy em Produção (PRD)  
+```powershell
+./scripts/deploy-prd.ps1
 ```
-minikube service getting-started-svc-prd -n prd --url
-```
+
+---
+
+## 🛡️ DevSecOps e Qualidade  
+- **Versionamento:** adotado controle via `git` com branches dedicadas.  
+- **Análise estática:** projeto preparado para integração com **SonarQube**.  
+- **Cobertura de testes:** configurada com **JaCoCo**.  
+---
+
+## 📄 Documentação  
+- [DAS.md](./DAS.md) – Arquitetura e visão técnica do sistema.  
+- Scripts PowerShell de automação (infra como código).  
+- Documento de instruções de nomenclatura.  
